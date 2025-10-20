@@ -19,6 +19,21 @@ jobs:
         run: echo "DEVELOPER_DIR=/Applications/Xcode_26.0.app"
       - name: "Lint and Format"
         run: swift format . -ri && swift format lint . -r
+      - name: Check formatting and lint
+        run: |
+          swift format . -ri
+          if [[ $(git status --porcelain) ]]; then
+            echo "❌ SwiftFormat modified files. Please run 'swift format . -ri' locally."
+            git status
+            exit 1
+          fi
+
+          LINT_OUTPUT=$(swift format lint . -r)
+          if [[ -n "$LINT_OUTPUT" ]]; then
+            echo "❌ SwiftFormat lint found issues:"
+            echo "$LINT_OUTPUT"
+            exit 1
+          fi
       - name: Build / Test
         run: xcrun swift test && xcrun swift test -c release
         timeout-minutes: 60

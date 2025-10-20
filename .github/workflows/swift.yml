@@ -64,3 +64,44 @@ jobs:
       run: swift build
     - name: Test
       run: swift test
+  linux:
+    name: Linux
+    strategy:
+      fail-fast: false
+      matrix:
+        swift: ["nightly-main", "6.2"]
+        include:
+          - swift: "nightly-main"
+            container: "swiftlang/swift:nightly-main"
+            continueOnError: true
+          - swift: "6.2"
+            container: "swift:6.2"
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    continue-on-error: ${{ matrix.continueOnError == true }}
+    steps:
+    - uses: actions/checkout@master
+    - name: Get Swift Version
+      id: get-swift-version
+      run: |
+        swift_version=$(swift -version | head -n 1 | sed s/,//)
+        echo "$swift_version"
+        echo "SWIFT_VERSION=${swift_version}" >> "$GITHUB_ENV"
+      shell: bash
+    - name: Cache resolved dependencies
+      id: cache-resolved-dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          .build
+          Package.resolved
+        key: ${{ runner.os }}-${{ env.SWIFT_VERSION }}-${{ env.cache_version }}-spm-deps-${{ hashFiles('Package.swift', 'Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.SWIFT_VERSION }}-${{ env.cache_version }}-spm-deps-
+    - name: Resolve dependencies
+      if: steps.cache-resolved-dependencies.outputs.cache-hit != 'true'
+      run: ${{ env.swift_package_resolve }}
+    - name: Build
+      run: swift build
+    - name: Test
+      run: swift test

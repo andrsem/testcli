@@ -6,33 +6,6 @@ on:
   pull_request:
     branches: [ "main" ]
 
-
-format: |
-    set -e
-
-    # Run swift format and check for changes
-    swift format . -ri
-    FORMAT_FAILED=0
-    if [[ -n "$(git status --porcelain)" ]]; then
-      echo "❌ swift format modified files. Please run 'swift format . -ri' locally."
-      git status
-      FORMAT_FAILED=1
-    fi
-
-    # Run swift format lint and check for output
-    LINT_OUTPUT=$(swift format lint . -r)
-    echo "$LINT_OUTPUT"
-    LINT_FAILED=0
-    if [[ -n "$LINT_OUTPUT" ]]; then
-      echo "❌ swift format lint found issues."
-      LINT_FAILED=1
-    fi
-
-    # Fail if either format or lint failed
-    if [[ $FORMAT_FAILED -eq 1 || $LINT_FAILED -eq 1 ]]; then
-      exit 1
-    fi
-
 jobs:
   macos-build:
     name: macOS
@@ -47,7 +20,7 @@ jobs:
       - name: "Lint and Format"
         run: swift format . -ri && swift format lint . -r
       - name: Check formatting and lint
-        run: ${{ format }}
+        run: bash scripts/lintAndFormat.sh
       - name: Build / Test
         run: xcrun swift test && xcrun swift test -c release
         timeout-minutes: 60

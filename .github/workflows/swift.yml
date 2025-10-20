@@ -22,16 +22,15 @@ jobs:
       - name: Check formatting and lint
         run: |
           swift format . -ri
-          if [[ $(git status --porcelain) ]]; then
-            echo "❌ SwiftFormat modified files. Please run 'swift format . -ri' locally."
+          if [[ $(git status -s) ]]; then
+            echo "❌ swift format modified files. Please run 'swift format . -ri' locally."
             git status
             exit 1
           fi
 
-          LINT_OUTPUT=$(swift format lint . -r)
-          if [[ -n "$LINT_OUTPUT" ]]; then
-            echo "❌ SwiftFormat lint found issues:"
-            echo "$LINT_OUTPUT"
+          LINT_OUTPUT=$(swift format lint . -r | tee /dev/stderr)
+          if [[ $(echo "$LINT_OUTPUT" | wc -l) -gt 0 ]]; then
+            echo "❌ swift format lint found issues."
             exit 1
           fi
       - name: Build / Test

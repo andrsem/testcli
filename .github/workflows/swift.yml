@@ -23,6 +23,7 @@ jobs:
         Invoke-Program swift test -c release
       enable_macos_checks: true
       macos_xcode_versions: '["26.0"]'
+      macos_versions: '["tahoe"]'
       macos_build_command: 'xcrun swift test && xcrun swift test -c release'
       enable_linux_static_sdk_build: true
       linux_static_sdk_versions: '["6.2", "nightly-main"]'

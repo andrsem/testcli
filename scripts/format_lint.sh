@@ -12,7 +12,7 @@ fi
 
 LINT_FAILED=0
 LINT_OUTPUT=$(swift format lint . -r | tee /dev/stderr)
-if [[ $(echo "$LINT_OUTPUT" | wc -l) -gt 0 ]]; then
+if [[ $(echo "$LINT_OUTPUT" | wc -l) -gt 1 ]]; then
    echo "❌ swift format lint found issues."
    LINT_FAILED=1
 fi

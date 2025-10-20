@@ -35,3 +35,19 @@ jobs:
       - name: Build / Test
         run: swift test && swift test -c release
         timeout-minutes: 60
+
+  linux-static-sdk-build:
+    name: Static Linux Swift SDK Build
+    runs-on: ubuntu-latest
+    container: "swift:6.2"
+    steps:
+      - name: Swift version
+        run: swift --version
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Static Linux Swift SDK and build
+        run: |
+          swift sdk install https://download.swift.org/swift-6.2-release/static-sdk/swift-6.2-RELEASE/swift-6.2-RELEASE_static-linux-0.0.1.artifactbundle.tar.gz --checksum d2225840e592389ca517bbf71652f7003dbf45ac35d1e57d98b9250368769378
+      - name: Build
+        run: swift build --swift-sdk x86_64-swift-linux-musl
+        timeout-minutes: 60

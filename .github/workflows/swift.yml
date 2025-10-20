@@ -23,8 +23,19 @@ jobs:
 
   linux-build:
     name: Linux
+    strategy:
+      fail-fast: false
+      matrix:
+        swift: ["nightly-main", "6.2"]
+        include:
+          - swift: "nightly-main"
+            container: "swiftlang/swift:nightly-main"
+            continueOnError: true
+          - swift: "6.2"
+            container: "swift:6.2"
     runs-on: ubuntu-latest
-    container: "swift:6.2"
+    container: ${{ matrix.container }}
+    continue-on-error: ${{ matrix.continueOnError == true }}
     steps:
       - name: Swift version
         run: swift --version

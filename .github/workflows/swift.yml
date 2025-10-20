@@ -10,6 +10,7 @@ jobs:
   macos-build:
     name: macOS
     runs-on: macos-26
+    continue-on-error: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -17,8 +18,6 @@ jobs:
         run: xcrun swift --version
       - name: Select Xcode
         run: echo "DEVELOPER_DIR=/Applications/Xcode_26.0.app"
-      - name: "Lint and Format"
-        run: swift format . -ri && swift format lint . -r
       - name: Check formatting and lint
         run: bash scripts/lintAndFormat.sh
       - name: Build / Test

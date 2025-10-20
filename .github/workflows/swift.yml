@@ -21,9 +21,6 @@ jobs:
         ~/.swiftly/bin/swiftly init --quiet-shell-followup && \
         . "${SWIFTLY_HOME_DIR:-$HOME/.swiftly}/env.sh" && \
         hash -r
-    - uses: swift-actions/setup-swift@v2
-      with:
-        swift-version: "6.2.0"
     - name: Build
       run: swift build
     - name: Run tests

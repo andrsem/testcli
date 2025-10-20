@@ -4,9 +4,9 @@ set -e
 
 swift format . -ri
 FORMAT_FAILED=0
-if [[ -n "$(git status --porcelain)" ]]; then
+if [[ -n "$(git status -s)" ]]; then
    echo "❌ swift format modified files. Please run 'swift format . -ri' locally."
-   git status
+   git status -s
    FORMAT_FAILED=1
 fi
 

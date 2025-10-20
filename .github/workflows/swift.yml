@@ -14,8 +14,14 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Setup Swift 6.2
-      uses: swift-actions/setup-swift@v2
+    - name: Install Swift manually
+      run: |
+        curl -O https://download.swift.org/swiftly/darwin/swiftly.pkg && \
+        installer -pkg swiftly.pkg -target CurrentUserHomeDirectory && \
+        ~/.swiftly/bin/swiftly init --quiet-shell-followup && \
+        . "${SWIFTLY_HOME_DIR:-$HOME/.swiftly}/env.sh" && \
+        hash -r
+    - uses: swift-actions/setup-swift@v2
       with:
         swift-version: "6.2.0"
     - name: Build

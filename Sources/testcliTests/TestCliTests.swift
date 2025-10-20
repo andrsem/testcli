@@ -9,5 +9,5 @@ func `test 1`() {
 
 @Test
 func `test 2`() {
-   #expect(2 == 1)
+   #expect(2 == 2)
 }

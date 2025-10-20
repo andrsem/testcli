@@ -10,10 +10,8 @@ if [[ -n "$(git status -s)" ]]; then
    FORMAT_FAILED=1
 fi
 
-LINT_OUTPUT=$(swift format lint . -r)
-echo "$LINT_OUTPUT"
 LINT_FAILED=0
-if [[ -n "$LINT_OUTPUT" ]]; then
+if [[ -n "$(swift format lint . -r)" ]]; then
    echo "❌ swift format lint found issues."
    LINT_FAILED=1
 fi

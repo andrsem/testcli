@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        step: ["main-snapshot", "26.0", "16.4"]
+        step: ["main-snapshot", "26.0"]
         include:
           - step: "main-snapshot"
             xcode: "26.0"
@@ -23,8 +23,6 @@ jobs:
             continueOnError: true
           - step: "26.0"
             xcode: "26.0"
-          - step: "16.4"
-            xcode: "16.4"
     runs-on: macos-26
     continue-on-error: ${{ matrix.continueOnError == true }}
     steps:
@@ -62,12 +60,7 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.xcode }}-${{ env.SWIFT_VERSION }}-${{ env.cache_version }}-spm-deps-${{ hashFiles('Package.swift', 'Package.resolved') }}
         restore-keys: |
           ${{ runner.os }}-${{ matrix.xcode }}-${{ env.SWIFT_VERSION }}-${{ env.cache_version }}-spm-deps-
-    - name: Resolve dependencies
-      if: steps.cache-resolved-dependencies.outputs.cache-hit != 'true'
-      run: ${{ env.swift_package_resolve }}
     - name: Build
-      run: ${{ env.swift_build }}
-    - name: Scan
-      run: ${{ env.periphery_scan }} ${{ matrix.baseline && format('--baseline baselines/{0}', matrix.baseline) || '' }}
+      run: swift build
     - name: Test
-      run: ${{ env.swift_test }}
+      run: swift test

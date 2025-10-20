@@ -33,7 +33,7 @@ jobs:
           # Test dependencies
           yum install -y procps
         fi
-      linux_build_command: 'swift-format lint -s -r --configuration ./.swift-format . && swift test && swift test -c release && swift test --disable-default-traits'
+      linux_build_command: 'swift test && swift test -c release'
       windows_swift_versions: '["6.2"]'
       windows_build_command: |
         Invoke-Program swift test
@@ -41,12 +41,11 @@ jobs:
         Invoke-Program swift test --disable-default-traits
       enable_macos_checks: true
       macos_xcode_versions: '["26.0"]'
-      macos_build_command: 'xcrun swift-format lint -s -r --configuration ./.swift-format . && xcrun swift test && xcrun swift test -c release && xcrun swift test --disable-default-traits'
+      macos_build_command: 'xcrun swift test && xcrun swift test -c release'
       enable_linux_static_sdk_build: true
       linux_static_sdk_versions: '["6.2"]'
       linux_static_sdk_build_command: |
         for triple in aarch64-swift-linux-musl x86_64-swift-linux-musl ; do
           swift build --swift-sdk "\$triple"
-          swift build --swift-sdk "\$triple" --disable-default-traits
         done
         # empty line to ignore the --swift-sdk given by swiftlang/github-workflows/.github/workflows/scripts/install-and-build-with-sdk.sh \

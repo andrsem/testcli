@@ -7,7 +7,7 @@
 import ArgumentParser
 
 @main
-struct testcli: ParsableCommand {
+struct TestCli: ParsableCommand {
   mutating func run() throws {
     print("Hello, world!")
   }

@@ -18,7 +18,7 @@ LINT_FAILED=0
 # fi
 output=$(swift format lint . -r 2>&1)
 if [[ -n "$output" ]]; then
-   echo "SwiftFormat lint found issues. Stopping."
+   echo "❌ swift format lint found issues."
    echo "$output"
    LINT_FAILED=1
 fi

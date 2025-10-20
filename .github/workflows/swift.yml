@@ -13,10 +13,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Select Xcode
-        run: echo "DEVELOPER_DIR=/Applications/Xcode_26.0.app"
       - name: Swift version
         run: xcrun swift --version
+      - name: Select Xcode
+        run: echo "DEVELOPER_DIR=/Applications/Xcode_26.0.app"
       - name: Build / Test
         run: xcrun swift test && xcrun swift test -c release
         timeout-minutes: 60
@@ -37,8 +37,6 @@ jobs:
     container: ${{ matrix.container }}
     continue-on-error: ${{ matrix.continueOnError == true }}
     steps:
-      - name: Swift version
-        run: swift --version
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Swift version
@@ -52,13 +50,13 @@ jobs:
     runs-on: ubuntu-latest
     container: "swift:6.2"
     steps:
-      - name: Swift version
-        run: swift --version
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Swift version
+        run: swift --version
       - name: Install Static Linux Swift SDK and build
         run: |
           swift sdk install https://download.swift.org/swift-6.2-release/static-sdk/swift-6.2-RELEASE/swift-6.2-RELEASE_static-linux-0.0.1.artifactbundle.tar.gz --checksum d2225840e592389ca517bbf71652f7003dbf45ac35d1e57d98b9250368769378
-      - name: Build Static Linux
+      - name: Build Static Linux SDK
         run: swift build --swift-sdk x86_64-swift-linux-musl && swift build -c release --swift-sdk x86_64-swift-linux-musl
         timeout-minutes: 60

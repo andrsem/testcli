@@ -11,7 +11,8 @@ if [[ -n "$(git status -s)" ]]; then
 fi
 
 LINT_FAILED=0
-if [[ -n "$(swift format lint . -r)" ]]; then
+LINT_OUTPUT=$(swift format lint . -r | tee /dev/stderr)
+if [[ $(echo "$LINT_OUTPUT" | wc -l) -gt 0 ]]; then
    echo "❌ swift format lint found issues."
    LINT_FAILED=1
 fi

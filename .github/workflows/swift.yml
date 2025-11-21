@@ -31,7 +31,7 @@ jobs:
         run: xcrun swift build -c release
       - name: Prepare macOS Artifact
         run: |
-          BINARY_NAME=$(swift package dump-package | jq -r '.name')
+          BINARY_NAME="testcli"
           ARCHIVE_NAME="macos-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
           tar -C .build/release -czf artifacts/$ARCHIVE_NAME $BINARY_NAME
@@ -84,7 +84,7 @@ jobs:
       - name: Prepare Linux Artifact
         if: matrix.swift == '6.2.1'
         run: |
-          BINARY_NAME=$(swift package dump-package | jq -r '.name')
+          BINARY_NAME="testcli"
           ARCHIVE_NAME="linux-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
           tar -C .build/release -czf artifacts/$ARCHIVE_NAME $BINARY_NAME
@@ -124,7 +124,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y jq
       - name: Prepare Static Linux Artifact
         run: |
-          BINARY_NAME=$(swift package dump-package | jq -r '.name')
+          BINARY_NAME="testcli"
           ARCHIVE_NAME="linux-static-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
           tar -C .build/release -czf artifacts/$ARCHIVE_NAME $BINARY_NAME

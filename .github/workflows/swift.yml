@@ -26,10 +26,10 @@ jobs:
         run: xcrun swift build -c release
       - name: Prepare macOS Artifact
         run: |
-          BINARY_PATH=".build/release/$(swift package dump-package | jq -r '.name')"
           mkdir -p artifacts
-          cp "$BINARY_PATH" artifacts/
-          cd artifacts && tar -czf macos-binary.tar.gz *.* && cd ..
+          BINARY_NAME=$(swift package dump-package | jq -r '.name')
+          find .build/release -type f -executable ! -name "*.d" -exec cp {} artifacts/ \;
+          cd artifacts && tar -czf macos-binary.tar.gz * && cd ..
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -65,10 +65,9 @@ jobs:
       - name: Prepare Linux Artifact
         if: matrix.swift == '6.2.1'
         run: |
-          BINARY_PATH=".build/release/$(swift package dump-package | jq -r '.name')"
           mkdir -p artifacts
-          cp "$BINARY_PATH" artifacts/
-          cd artifacts && tar -czf linux-binary.tar.gz *.* && cd ..
+          find .build/release -type f -executable ! -name "*.d" -exec cp {} artifacts/ \;
+          cd artifacts && tar -czf linux-binary.tar.gz * && cd ..
       - name: Upload Linux Artifact
         if: matrix.swift == '6.2.1'
         uses: actions/upload-artifact@v4
@@ -93,10 +92,9 @@ jobs:
         timeout-minutes: 60
       - name: Prepare Static Linux Artifact
         run: |
-          BINARY_PATH=".build/x86_64-swift-linux-musl/release/$(swift package dump-package | jq -r '.name')"
           mkdir -p artifacts
-          cp "$BINARY_PATH" artifacts/
-          cd artifacts && tar -czf linux-static-binary.tar.gz *.* && cd ..
+          find .build/x86_64-swift-linux-musl/release -type f -executable ! -name "*.d" -exec cp {} artifacts/ \;
+          cd artifacts && tar -czf linux-static-binary.tar.gz * && cd ..
       - name: Upload Static Linux Artifact
         uses: actions/upload-artifact@v4
         with:

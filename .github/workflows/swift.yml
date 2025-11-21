@@ -70,8 +70,10 @@ jobs:
         if: matrix.swift == '6.2.1'
         run: |
           mkdir -p artifacts
-          find .build/release -maxdepth 1 -type f -executable ! -name "*.d" ! -name "*.o" -exec cp {} artifacts/ \;
-          cd artifacts && tar -czf linux-binary.tar.gz * && cd ..
+          echo "Contents of .build/release:"
+          ls -la .build/release/ || true
+          find .build/release -maxdepth 1 -type f ! -name "*.d" ! -name "*.o" -exec cp {} artifacts/ \;
+          cd artifacts && ls -la && tar -czf linux-binary.tar.gz * || echo "No files to archive" && cd ..
       - name: Upload Linux Artifact
         if: matrix.swift == '6.2.1'
         uses: actions/upload-artifact@v4
@@ -97,8 +99,10 @@ jobs:
       - name: Prepare Static Linux Artifact
         run: |
           mkdir -p artifacts
-          find .build/x86_64-swift-linux-musl/release -maxdepth 1 -type f -executable ! -name "*.d" ! -name "*.o" -exec cp {} artifacts/ \;
-          cd artifacts && tar -czf linux-static-binary.tar.gz * && cd ..
+          echo "Contents of .build/x86_64-swift-linux-musl/release:"
+          ls -la .build/x86_64-swift-linux-musl/release/ || true
+          find .build/x86_64-swift-linux-musl/release -maxdepth 1 -type f ! -name "*.d" ! -name "*.o" -exec cp {} artifacts/ \;
+          cd artifacts && ls -la && tar -czf linux-static-binary.tar.gz * || echo "No files to archive" && cd ..
       - name: Upload Static Linux Artifact
         uses: actions/upload-artifact@v4
         with:

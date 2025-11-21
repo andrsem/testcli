@@ -13,6 +13,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Set Tag Version Environment Variable
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/} 
+          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
       - name: Swift version
         run: xcrun swift --version
       - name: Select Xcode
@@ -38,7 +43,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-${{ env.TAG_VERSION || github.sha }}
-          path: artifacts/macos-binary.tar.gz
+          path: artifacts/macos-${{ env.TAG_VERSION || github.sha }}.tar.gz
 
   linux-build:
     name: Linux
@@ -58,6 +63,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Set Tag Version Environment Variable
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/} 
+          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
       - name: Swift version
         run: swift --version
       - name: Build / Test
@@ -79,7 +89,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux-${{ env.TAG_VERSION || github.sha }}
-          path: artifacts/linux-binary.tar.gz
+          path: artifacts/linux-${{ env.TAG_VERSION || github.sha }}.tar.gz
 
   linux-static-sdk-build:
     name: Static Linux Swift SDK Build
@@ -88,6 +98,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Set Tag Version Environment Variable
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/} 
+          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
       - name: Swift version
         run: swift --version
       - name: Install Static Linux Swift SDK and build
@@ -107,7 +122,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux-static-${{ env.TAG_VERSION || github.sha }}
-          path: artifacts/linux-static-binary.tar.gz
+          path: artifacts/linux-static-${{ env.TAG_VERSION || github.sha }}.tar.gz
 
   publish-release:
     name: Publish Release

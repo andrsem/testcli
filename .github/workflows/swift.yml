@@ -114,6 +114,8 @@ jobs:
     needs: [macos-build, linux-build, linux-static-sdk-build]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -121,10 +123,15 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: release-artifacts
+      - name: Flatten artifacts
+        run: |
+          mkdir -p flat-artifacts
+          find release-artifacts -type f -name "*.tar.gz" -exec cp {} flat-artifacts/ \;
+          ls -la flat-artifacts/
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-          files: release-artifacts/**/*
+          files: flat-artifacts/*.tar.gz
           draft: false
           prerelease: false
         env:

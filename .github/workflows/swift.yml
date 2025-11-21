@@ -35,13 +35,6 @@ jobs:
           ARCHIVE_NAME="macos-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
           tar -C .build/release -czf artifacts/$ARCHIVE_NAME $BINARY_NAME
-          # BINARY_NAME=$(swift package dump-package | jq -r '.name')
-          # if [ -f ".build/release/$BINARY_NAME" ]; then
-          #   cp ".build/release/$BINARY_NAME" artifacts/
-          # else
-          #   find .build/release -type f -perm +111 ! -name "*.d" ! -name "*.o" -exec cp {} artifacts/ \;
-          # fi
-          # cd artifacts && tar -czf macos-${{ env.TAG_VERSION || github.sha }}.tar.gz * && cd ..
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -86,11 +79,6 @@ jobs:
           ARCHIVE_NAME="linux-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
           tar -C .build/release -czf artifacts/$ARCHIVE_NAME $BINARY_NAME
-          # mkdir -p artifacts
-          # echo "Contents of .build/release:"
-          # ls -la .build/release/ || true
-          # find .build/release -maxdepth 1 -type f ! -name "*.d" ! -name "*.o" -exec cp {} artifacts/ \;
-          # cd artifacts && ls -la && tar -czf linux-${{ env.TAG_VERSION || github.sha }}.tar.gz * || echo "No files to archive" && cd ..
       - name: Upload Linux Artifact
         if: matrix.swift == '6.2.1'
         uses: actions/upload-artifact@v4
@@ -124,11 +112,6 @@ jobs:
           ARCHIVE_NAME="linux-static-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
           tar -C .build/release -czf artifacts/$ARCHIVE_NAME $BINARY_NAME
-          # mkdir -p artifacts
-          # echo "Contents of .build/x86_64-swift-linux-musl/release:"
-          # ls -la .build/x86_64-swift-linux-musl/release/ || true
-          # find .build/x86_64-swift-linux-musl/release -maxdepth 1 -type f ! -name "*.d" ! -name "*.o" -exec cp {} artifacts/ \;
-          # cd artifacts && ls -la && tar -czf linux-static-${{ env.TAG_VERSION || github.sha }}.tar.gz * || echo "No files to archive" && cd ..
       - name: Upload Static Linux Artifact
         uses: actions/upload-artifact@v4
         with:

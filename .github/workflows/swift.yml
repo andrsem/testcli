@@ -39,6 +39,7 @@ jobs:
             find .build/release -type f -perm +111 ! -name "*.d" ! -name "*.o" -exec cp {} artifacts/ \;
           fi
           cd artifacts && tar -czf macos-binary.tar.gz * && cd ..
+          mv macos-binary.tar.gz "macos-${{ env.TAG_VERSION || github.sha }}.tar.gz"
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -84,6 +85,7 @@ jobs:
           ls -la .build/release/ || true
           find .build/release -maxdepth 1 -type f ! -name "*.d" ! -name "*.o" -exec cp {} artifacts/ \;
           cd artifacts && ls -la && tar -czf linux-binary.tar.gz * || echo "No files to archive" && cd ..
+          mv linux-binary.tar.gz "linux-${{ env.TAG_VERSION || github.sha }}.tar.gz"
       - name: Upload Linux Artifact
         if: matrix.swift == '6.2.1'
         uses: actions/upload-artifact@v4
@@ -118,6 +120,7 @@ jobs:
           ls -la .build/x86_64-swift-linux-musl/release/ || true
           find .build/x86_64-swift-linux-musl/release -maxdepth 1 -type f ! -name "*.d" ! -name "*.o" -exec cp {} artifacts/ \;
           cd artifacts && ls -la && tar -czf linux-static-binary.tar.gz * || echo "No files to archive" && cd ..
+          mv linux-static.tar.gz "linux-static-${{ env.TAG_VERSION || github.sha }}.tar.gz"
       - name: Upload Static Linux Artifact
         uses: actions/upload-artifact@v4
         with:

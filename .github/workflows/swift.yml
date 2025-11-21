@@ -31,10 +31,9 @@ jobs:
         run: xcrun swift build -c release
       - name: Prepare macOS Artifact
         run: |
-          BINARY_NAME=$(swift package dump-package | jq -r '.name')
           ARCHIVE_NAME="macos-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
-          tar -C .build/release -czf artifacts/$ARCHIVE_NAME $BINARY_NAME
+          tar -C .build/release -czf artifacts/$ARCHIVE_NAME gitty
           # BINARY_NAME=$(swift package dump-package | jq -r '.name')
           # if [ -f ".build/release/$BINARY_NAME" ]; then
           #   cp ".build/release/$BINARY_NAME" artifacts/
@@ -82,10 +81,9 @@ jobs:
       - name: Prepare Linux Artifact
         if: matrix.swift == '6.2.1'
         run: |
-          BINARY_NAME=$(swift package dump-package | jq -r '.name')
           ARCHIVE_NAME="linux-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
-          tar -C .build/release -czf artifacts/$ARCHIVE_NAME $BINARY_NAME
+          tar -C .build/release -czf artifacts/$ARCHIVE_NAME gitty
           # mkdir -p artifacts
           # echo "Contents of .build/release:"
           # ls -la .build/release/ || true
@@ -120,10 +118,9 @@ jobs:
         timeout-minutes: 60
       - name: Prepare Static Linux Artifact
         run: |
-          BINARY_NAME=$(swift package dump-package | jq -r '.name')
           ARCHIVE_NAME="linux-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
-          tar -C .build/release -czf artifacts/$ARCHIVE_NAME $BINARY_NAME
+          tar -C .build/release -czf artifacts/$ARCHIVE_NAME gitty
           # mkdir -p artifacts
           # echo "Contents of .build/x86_64-swift-linux-musl/release:"
           # ls -la .build/x86_64-swift-linux-musl/release/ || true

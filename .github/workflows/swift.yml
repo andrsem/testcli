@@ -37,7 +37,7 @@ jobs:
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: macos-binary
+          name: macos-${{ env.TAG_VERSION || github.sha }}
           path: artifacts/macos-binary.tar.gz
 
   linux-build:
@@ -78,7 +78,7 @@ jobs:
         if: matrix.swift == '6.2.1'
         uses: actions/upload-artifact@v4
         with:
-          name: linux-binary
+          name: linux-${{ env.TAG_VERSION || github.sha }}
           path: artifacts/linux-binary.tar.gz
 
   linux-static-sdk-build:
@@ -106,7 +106,7 @@ jobs:
       - name: Upload Static Linux Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: linux-static-binary
+          name: linux-static-${{ env.TAG_VERSION || github.sha }}
           path: artifacts/linux-static-binary.tar.gz
 
   publish-release:

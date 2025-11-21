@@ -1,10 +1,15 @@
 name: Swift
+
+env:
+  APP_NAME: testcli
+
 on:
   push:
     branches: [ "main" ]
     tags: [ "v*" ]
   pull_request:
     branches: [ "main" ]
+
 jobs:
   macos-build:
     name: macOS
@@ -31,15 +36,14 @@ jobs:
         run: xcrun swift build -c release
       - name: Prepare macOS Artifact
         run: |
-          BINARY_NAME="testcli"
           ARCHIVE_NAME="macos-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
-          tar -C .build/release -czf artifacts/$ARCHIVE_NAME $BINARY_NAME
+          tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos-${{ env.TAG_VERSION || github.sha }}
-          path: artifacts/macos-${{ env.TAG_VERSION || github.sha }}.tar.gz
+          path: artifacts/${{ env.APP_NAME }}-macos-${{ env.TAG_VERSION || github.sha }}.tar.gz
 
   linux-build:
     name: Linux
@@ -75,16 +79,15 @@ jobs:
       - name: Prepare Linux Artifact
         if: matrix.swift == '6.2.1'
         run: |
-          BINARY_NAME="testcli"
           ARCHIVE_NAME="linux-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
-          tar -C .build/release -czf artifacts/$ARCHIVE_NAME $BINARY_NAME
+          tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
       - name: Upload Linux Artifact
         if: matrix.swift == '6.2.1'
         uses: actions/upload-artifact@v4
         with:
           name: linux-${{ env.TAG_VERSION || github.sha }}
-          path: artifacts/linux-${{ env.TAG_VERSION || github.sha }}.tar.gz
+          path: artifacts/${{ env.APP_NAME }}-linux-${{ env.TAG_VERSION || github.sha }}.tar.gz
 
   linux-static-sdk-build:
     name: Static Linux Swift SDK Build
@@ -108,15 +111,14 @@ jobs:
         timeout-minutes: 60
       - name: Prepare Static Linux Artifact
         run: |
-          BINARY_NAME="testcli"
           ARCHIVE_NAME="linux-static-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
-          tar -C .build/release -czf artifacts/$ARCHIVE_NAME $BINARY_NAME
+          tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
       - name: Upload Static Linux Artifact
         uses: actions/upload-artifact@v4
         with:
           name: linux-static-${{ env.TAG_VERSION || github.sha }}
-          path: artifacts/linux-static-${{ env.TAG_VERSION || github.sha }}.tar.gz
+          path: artifacts/${{ env.APP_NAME }}-linux-static-${{ env.TAG_VERSION || github.sha }}.tar.gz
 
   publish-release:
     name: Publish Release

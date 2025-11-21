@@ -79,8 +79,6 @@ jobs:
       - name: Build Release Binary
         if: matrix.swift == '6.2.1'
         run: swift build -c release
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
       - name: Prepare Linux Artifact
         if: matrix.swift == '6.2.1'
         run: |
@@ -120,8 +118,6 @@ jobs:
       - name: Build Static Linux SDK
         run: swift build --swift-sdk x86_64-swift-linux-musl && swift build -c release --swift-sdk x86_64-swift-linux-musl
         timeout-minutes: 60
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
       - name: Prepare Static Linux Artifact
         run: |
           BINARY_NAME="testcli"

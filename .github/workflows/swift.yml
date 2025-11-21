@@ -1,12 +1,10 @@
 name: Swift
-
 on:
   push:
     branches: [ "main" ]
     tags: [ "v*" ]
   pull_request:
     branches: [ "main" ]
-
 jobs:
   macos-build:
     name: macOS
@@ -104,7 +102,6 @@ jobs:
         with:
           name: linux-static-binary
           path: artifacts/linux-static-binary.tar.gz
-
 
   publish-release:
     name: Publish Release

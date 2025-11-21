@@ -36,7 +36,7 @@ jobs:
         run: xcrun swift build -c release
       - name: Prepare macOS Artifact
         run: |
-          ARCHIVE_NAME="macos-${{ env.TAG_VERSION || github.sha }}.tar.gz"
+          ARCHIVE_NAME="${{ env.APP_NAME }}macos-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
           tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
       - name: Upload macOS Artifact
@@ -79,7 +79,7 @@ jobs:
       - name: Prepare Linux Artifact
         if: matrix.swift == '6.2.1'
         run: |
-          ARCHIVE_NAME="linux-${{ env.TAG_VERSION || github.sha }}.tar.gz"
+          ARCHIVE_NAME="${{ env.APP_NAME }}linux-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
           tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
       - name: Upload Linux Artifact
@@ -111,7 +111,7 @@ jobs:
         timeout-minutes: 60
       - name: Prepare Static Linux Artifact
         run: |
-          ARCHIVE_NAME="linux-static-${{ env.TAG_VERSION || github.sha }}.tar.gz"
+          ARCHIVE_NAME="${{ env.APP_NAME }}-linux-static-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
           tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
       - name: Upload Static Linux Artifact

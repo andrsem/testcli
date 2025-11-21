@@ -64,6 +64,7 @@ jobs:
         run: swift build --swift-sdk x86_64-swift-linux-musl && swift build -c release --swift-sdk x86_64-swift-linux-musl
         timeout-minutes: 60
 
+
   publish-release:
     name: Publish Release
     needs: [macos-build, linux-build, linux-static-sdk-build]

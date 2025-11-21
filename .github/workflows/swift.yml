@@ -2,7 +2,6 @@ name: Swift
 
 env:
   APP_NAME: testcli
-  SWIFT: 6.2.1
 
 on:
   push:
@@ -56,8 +55,8 @@ jobs:
           - swift: "nightly-main"
             container: "swiftlang/swift:nightly-main"
             continueOnError: true
-          - swift: "${{ SWIFT }}"
-            container: "swift:${{ SWIFT }}"
+          - swift: "6.2.1"
+            container: "swift:6.2.1"
     runs-on: ubuntu-latest
     container: ${{ matrix.container }}
     continue-on-error: ${{ matrix.continueOnError == true }}
@@ -75,16 +74,16 @@ jobs:
         run: swift test && swift test -c release
         timeout-minutes: 60
       - name: Build Release Binary
-        if: matrix.swift == '${{ SWIFT }}'
+        if: matrix.swift == '6.2.1'
         run: swift build -c release
       - name: Prepare Linux Artifact
-        if: matrix.swift == '${{ SWIFT }}'
+        if: matrix.swift == '6.2.1'
         run: |
           ARCHIVE_NAME="${{ env.APP_NAME }}-linux-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
           tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
       - name: Upload Linux Artifact
-        if: matrix.swift == '${{ SWIFT }}'
+        if: matrix.swift == '6.2.1'
         uses: actions/upload-artifact@v4
         with:
           name: linux-${{ env.TAG_VERSION || github.sha }}
@@ -93,7 +92,7 @@ jobs:
   linux-static-sdk-build:
     name: Static Linux Swift SDK Build
     runs-on: ubuntu-latest
-    container: "swift:${{ SWIFT }}"
+    container: "swift:6.2.1"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

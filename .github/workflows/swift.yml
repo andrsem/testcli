@@ -216,8 +216,12 @@ jobs:
           mkdir -p build-artifacts/man
       - name: Generate Shell Completion Scripts
         run: |
-          EXECUTABLE_PATH="./.build/release/gitty" 
-          
+          EXECUTABLE_PATH=$(find .build/release/ -name gitty -type f -perm +111 -print -quit)
+          if [ -z "$EXECUTABLE_PATH" ]; then
+              echo "Error: Could not find the 'gitty' executable after searching in .build/release/ subdirectories."
+              exit 1
+          fi          
+
           echo "Generating Zsh completion..."
           $EXECUTABLE_PATH --generate-completion-script zsh > build-artifacts/completions/gitty.zsh
           

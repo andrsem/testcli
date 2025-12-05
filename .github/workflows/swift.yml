@@ -190,9 +190,10 @@ jobs:
           name: linux-arm64-static-${{ env.TAG_VERSION || github.sha }}
           path: artifacts/${{ env.APP_NAME }}-linux-arm64-static-${{ env.TAG_VERSION || github.sha }}.tar.gz
 
+
   generate_build_artifacts:
     # Using a fast and common runner
-    runs-on: ubuntu-latest
+    runs-on: macos-26
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4

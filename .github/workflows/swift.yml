@@ -11,86 +11,8 @@ on:
     branches: [ "main" ]
 
 jobs:
-  macos-build:
-    name: macOS
-    runs-on: macos-26
-    continue-on-error: false
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set Tag Version Environment Variable
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          TAG_VERSION=${GITHUB_REF#refs/tags/} 
-          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
-      - name: Swift version
-        run: xcrun swift --version
-      - name: Select Xcode
-        run: echo "DEVELOPER_DIR=/Applications/Xcode_26.1.app"
-      - name: Check formatting and lint
-        run: bash scripts/format_lint.sh
-      - name: Build / Test
-        run: xcrun swift test && xcrun swift test -c release
-        timeout-minutes: 60
-      - name: Build Release Binary
-        run: xcrun swift build -c release
-      - name: Prepare macOS Artifact
-        run: |
-          ARCHIVE_NAME="${{ env.APP_NAME }}-macos-${{ env.TAG_VERSION || github.sha }}.tar.gz"
-          mkdir -p artifacts
-          tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
-      - name: Upload macOS Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-${{ env.TAG_VERSION || github.sha }}
-          path: artifacts/${{ env.APP_NAME }}-macos-${{ env.TAG_VERSION || github.sha }}.tar.gz
-
-  linux-build:
-    name: Linux
-    strategy:
-      fail-fast: false
-      matrix:
-        swift: ["nightly-main", "6.2.1"]
-        include:
-          - swift: "nightly-main"
-            container: "swiftlang/swift:nightly-main"
-            continueOnError: true
-          - swift: "6.2.1"
-            container: "swift:6.2.1"
-    runs-on: ubuntu-latest
-    container: ${{ matrix.container }}
-    continue-on-error: ${{ matrix.continueOnError == true }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set Tag Version Environment Variable
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          TAG_VERSION=${GITHUB_REF#refs/tags/} 
-          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
-      - name: Swift version
-        run: swift --version
-      - name: Build / Test
-        run: swift test && swift test -c release
-        timeout-minutes: 60
-      - name: Build Release Binary
-        if: matrix.swift == '6.2.1'
-        run: swift build -c release
-      - name: Prepare Linux Artifact
-        if: matrix.swift == '6.2.1'
-        run: |
-          ARCHIVE_NAME="${{ env.APP_NAME }}-linux-${{ env.TAG_VERSION || github.sha }}.tar.gz"
-          mkdir -p artifacts
-          tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
-      - name: Upload Linux Artifact
-        if: matrix.swift == '6.2.1'
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-${{ env.TAG_VERSION || github.sha }}
-          path: artifacts/${{ env.APP_NAME }}-linux-${{ env.TAG_VERSION || github.sha }}.tar.gz
-
   linux-static-sdk-build:
-    name: Static Linux Swift SDK Build
+    name: Static Linux x86_64 Swift SDK Build
     runs-on: ubuntu-latest
     container: "swift:6.2.1"
     steps:
@@ -99,51 +21,185 @@ jobs:
       - name: Set Tag Version Environment Variable
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          TAG_VERSION=${GITHUB_REF#refs/tags/} 
+          TAG_VERSION=${GITHUB_REF#refs/tags/}
           echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
       - name: Swift version
         run: swift --version
-      - name: Install Static Linux Swift SDK and build
+      - name: Install Static Linux Swift SDK
         run: |
           swift sdk install https://download.swift.org/swift-6.2.1-release/static-sdk/swift-6.2.1-RELEASE/swift-6.2.1-RELEASE_static-linux-0.0.1.artifactbundle.tar.gz --checksum 08e1939a504e499ec871b36826569173103e4562769e12b9b8c2a50f098374ad
-      - name: Build Static Linux SDK
-        run: swift build --swift-sdk x86_64-swift-linux-musl && swift build -c release --swift-sdk x86_64-swift-linux-musl
+      - name: Build for Static Linux x86_64
+        run: swift build -c release --swift-sdk x86_64-swift-linux-musl
         timeout-minutes: 60
-      - name: Prepare Static Linux Artifact
+      - name: Prepare Static Linux x86_64 Artifact
         run: |
-          ARCHIVE_NAME="${{ env.APP_NAME }}-linux-static-${{ env.TAG_VERSION || github.sha }}.tar.gz"
+          ARCHIVE_NAME="${{ env.APP_NAME }}-linux-x86_64-static-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
           tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
-      - name: Upload Static Linux Artifact
+      - name: Upload Static Linux x86_64 Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: linux-static-${{ env.TAG_VERSION || github.sha }}
-          path: artifacts/${{ env.APP_NAME }}-linux-static-${{ env.TAG_VERSION || github.sha }}.tar.gz
+          name: linux-x86_64-static-${{ env.TAG_VERSION || github.sha }}
+          path: artifacts/${{ env.APP_NAME }}-linux-x86_64-static-${{ env.TAG_VERSION || github.sha }}.tar.gz
 
-  publish-release:
-    name: Publish Release
-    needs: [macos-build, linux-build, linux-static-sdk-build]
+  linux-arm64-build:
+    name: Linux ARM64 Build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    permissions:
-      contents: write
+    container: "swift:6.2.1"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: release-artifacts
-      - name: Flatten artifacts
+      - name: Set Tag Version Environment Variable
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
-          mkdir -p flat-artifacts
-          find release-artifacts -type f -name "*.tar.gz" -exec cp {} flat-artifacts/ \;
-          ls -la flat-artifacts/
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
+          TAG_VERSION=${GITHUB_REF#refs/tags/}
+          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
+      - name: Swift version
+        run: swift --version
+      - name: Install QEMU for ARM64 emulation
+        run: |
+          apt-get update
+          apt-get install -y qemu-user-static
+      - name: Install Static Linux Swift SDK for ARM64
+        run: |
+          swift sdk install https://download.swift.org/swift-6.2.1-release/static-sdk/swift-6.2.1-RELEASE/swift-6.2.1-RELEASE_static-linux-0.0.1.artifactbundle.tar.gz --checksum 08e1939a504e499ec871b36826569173103e4562769e12b9b8c2a50f098374ad
+      - name: Build for Linux ARM64
+        run: swift build -c release --swift-sdk aarch64-swift-linux-musl
+        timeout-minutes: 60
+      - name: Prepare Linux ARM64 Artifact
+        run: |
+          ARCHIVE_NAME="${{ env.APP_NAME }}-linux-arm64-${{ env.TAG_VERSION || github.sha }}.tar.gz"
+          mkdir -p artifacts
+          tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
+      - name: Upload Linux ARM64 Artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: flat-artifacts/*.tar.gz
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: linux-arm64-${{ env.TAG_VERSION || github.sha }}
+          path: artifacts/${{ env.APP_NAME }}-linux-arm64-${{ env.TAG_VERSION || github.sha }}.tar.gz
+
+  linux-arm64-static-build:
+    name: Static Linux ARM64 Build
+    runs-on: ubuntu-latest
+    container: "swift:6.2.1"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set Tag Version Environment Variable
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/}
+          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
+      - name: Swift version
+        run: swift --version
+      - name: Install QEMU for ARM64 emulation
+        run: |
+          apt-get update
+          apt-get install -y qemu-user-static
+      - name: Install Static Linux Swift SDK for ARM64
+        run: |
+          swift sdk install https://download.swift.org/swift-6.2.1-release/static-sdk/swift-6.2.1-RELEASE/swift-6.2.1-RELEASE_static-linux-0.0.1.artifactbundle.tar.gz --checksum 08e1939a504e499ec871b36826569173103e4562769e12b9b8c2a50f098374ad
+      - name: Build for Static Linux ARM64
+        run: swift build -c release --swift-sdk aarch64-swift-linux-musl
+        timeout-minutes: 60
+      - name: Prepare Static Linux ARM64 Artifact
+        run: |
+          ARCHIVE_NAME="${{ env.APP_NAME }}-linux-arm64-static-${{ env.TAG_VERSION || github.sha }}.tar.gz"
+          mkdir -p artifacts
+          tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
+      - name: Upload Static Linux ARM64 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-arm64-static-${{ env.TAG_VERSION || github.sha }}
+          path: artifacts/${{ env.APP_NAME }}-linux-arm64-static-${{ env.TAG_VERSION || github.sha }}.tar.gz
+
+  macos-x86_64-build:
+    name: macOS x86_64 Build
+    runs-on: macos-13  # Intel-based Mac
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set Tag Version Environment Variable
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/}
+          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
+      - name: Select Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
+      - name: Swift version
+        run: swift --version
+      - name: Build for macOS x86_64
+        run: swift build -c release --arch x86_64
+        timeout-minutes: 60
+      - name: Prepare macOS x86_64 Artifact
+        run: |
+          ARCHIVE_NAME="${{ env.APP_NAME }}-macos-x86_64-${{ env.TAG_VERSION || github.sha }}.tar.gz"
+          mkdir -p artifacts
+          tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
+      - name: Upload macOS x86_64 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-x86_64-${{ env.TAG_VERSION || github.sha }}
+          path: artifacts/${{ env.APP_NAME }}-macos-x86_64-${{ env.TAG_VERSION || github.sha }}.tar.gz
+
+  macos-arm64-build:
+    name: macOS ARM64 Build
+    runs-on: macos-14  # Apple Silicon Mac
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set Tag Version Environment Variable
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/}
+          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
+      - name: Swift version
+        run: swift --version
+      - name: Build for macOS ARM64
+        run: swift build -c release --arch arm64
+        timeout-minutes: 60
+      - name: Prepare macOS ARM64 Artifact
+        run: |
+          ARCHIVE_NAME="${{ env.APP_NAME }}-macos-arm64-${{ env.TAG_VERSION || github.sha }}.tar.gz"
+          mkdir -p artifacts
+          tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
+      - name: Upload macOS ARM64 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-arm64-${{ env.TAG_VERSION || github.sha }}
+          path: artifacts/${{ env.APP_NAME }}-macos-arm64-${{ env.TAG_VERSION || github.sha }}.tar.gz
+
+  macos-universal-build:
+    name: macOS Universal Binary Build (Optional)
+    runs-on: macos-14
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set Tag Version Environment Variable
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/}
+          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
+      - name: Swift version
+        run: swift --version
+      - name: Build Universal Binary
+        run: |
+          # Build for both architectures
+          swift build -c release --arch arm64
+          swift build -c release --arch x86_64
+          # Create universal binary
+          mkdir -p .build/universal
+          lipo -create \
+            .build/arm64-apple-macosx/release/${{ env.APP_NAME }} \
+            .build/x86_64-apple-macosx/release/${{ env.APP_NAME }} \
+            -output .build/universal/${{ env.APP_NAME }}
+        timeout-minutes: 60
+      - name: Prepare macOS Universal Artifact
+        run: |
+          ARCHIVE_NAME="${{ env.APP_NAME }}-macos-universal-${{ env.TAG_VERSION || github.sha }}.tar.gz"
+          mkdir -p artifacts
+          tar -C .build/universal -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
+      - name: Upload macOS Universal Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-universal-${{ env.TAG_VERSION || github.sha }}
+          path: artifacts/${{ env.APP_NAME }}-macos-universal-${{ env.TAG_VERSION || github.sha }}.tar.gz

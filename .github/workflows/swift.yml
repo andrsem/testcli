@@ -190,10 +190,62 @@ jobs:
           name: linux-arm64-static-${{ env.TAG_VERSION || github.sha }}
           path: artifacts/${{ env.APP_NAME }}-linux-arm64-static-${{ env.TAG_VERSION || github.sha }}.tar.gz
 
+  generate_build_artifacts:
+    # Using a fast and common runner
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Swift
+        # Ensures the correct Swift toolchain is available for building
+        uses: swift-actions/setup-swift@v1
+
+      - name: Build Executable
+        # This compiles your 'gitty' tool so it can be run later
+        run: swift build --configuration release
+
+      - name: Create Output Directories
+        run: |
+          mkdir -p build-artifacts/completions
+          mkdir -p build-artifacts/man
+
+      - name: Generate Shell Completion Scripts
+        # The executable is located in .build/release/gitty after the build step.
+        # We pipe the output directly to the desired file paths.
+        run: |
+          EXECUTABLE_PATH=$(pwd)/.build/release/gitty
+          echo "Generating Zsh completion..."
+          $EXECUTABLE_PATH --generate-completion-script zsh > build-artifacts/completions/gitty.zsh
+
+          echo "Generating Bash completion..."
+          $EXECUTABLE_PATH --generate-completion-script bash > build-artifacts/completions/gitty.bash
+
+          echo "Generating Fish completion..."
+          $EXECUTABLE_PATH --generate-completion-script fish > build-artifacts/completions/gitty.fish
+
+          ls -R build-artifacts/completions/
+
+      - name: Generate Man Page
+        # Uses the Swift Package Manager to generate the man page.
+        # The output is moved from the default location into our man directory.
+        run: |
+          swift package generate-manual
+          cp .build/manual/gitty.1 build-artifacts/man/gitty.1
+          ls -R build-artifacts/man/
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: CLI-Artifacts-gitty
+          path: build-artifacts/
+          # Keep the artifact available for 1 day
+          retention-days: 1
+
 
   publish-release:
     name: Publish Release
-    needs: [macos-arm64-build, linux-build, linux-static-sdk-build, linux-arm64-build, linux-arm64-static-build]
+    needs: [macos-arm64-build, linux-build, linux-static-sdk-build, linux-arm64-build, linux-arm64-static-build, generate_build_artifacts]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:

@@ -8,7 +8,10 @@ import ArgumentParser
 
 @main
 struct TestCli: ParsableCommand {
-  mutating func run() throws {
-    print("Hello, world!")
-  }
+   @Flag
+   var cool = false
+
+   mutating func run() throws {
+      print("Hello, world!")
+   }
 }

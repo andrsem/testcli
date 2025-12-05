@@ -105,11 +105,8 @@ jobs:
         run: |
           apt-get update
           apt-get install -y qemu-user-static
-      - name: Install Static Linux Swift SDK for ARM64
-        run: |
-          swift sdk install https://download.swift.org/swift-6.2.1-release/static-sdk/swift-6.2.1-RELEASE/swift-6.2.1-RELEASE_static-linux-0.0.1.artifactbundle.tar.gz --checksum 08e1939a504e499ec871b36826569173103e4562769e12b9b8c2a50f098374ad
       - name: Build for Linux ARM64
-        run: swift build -c release --swift-sdk aarch64-swift-linux-musl
+        run: swift build -c release
         timeout-minutes: 60
       - name: Prepare Linux ARM64 Artifact
         run: |

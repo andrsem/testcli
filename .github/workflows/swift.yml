@@ -191,70 +191,9 @@ jobs:
           path: artifacts/${{ env.APP_NAME }}-linux-arm64-static-${{ env.TAG_VERSION || github.sha }}.tar.gz
 
 
-  generate_build_artifacts:
-    name: Generate Build Artifacts
-    runs-on: ubuntu-latest
-    container: "swift:6.2.1"
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set Tag Version Environment Variable
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          TAG_VERSION=${GITHUB_REF#refs/tags/}
-          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
-      - name: Swift version
-        run: swift --version
-      - name: Build for Linux
-        run: swift build -c release
-        timeout-minutes: 60
-      - name: Create Output Directories
-        run: |
-          mkdir -p build-artifacts/completions
-          mkdir -p build-artifacts/man
-      - name: Generate Shell Completion Scripts
-        run: |
-          EXECUTABLE_PATH=".build/release/${{ env.APP_NAME }}"
-
-          echo "Generating Zsh completion..."
-          $EXECUTABLE_PATH --generate-completion-script zsh > build-artifacts/completions/gitty.zsh
-          
-          echo "Generating Bash completion..."
-          $EXECUTABLE_PATH --generate-completion-script bash > build-artifacts/completions/gitty.bash
-          
-          echo "Generating Fish completion..."
-          $EXECUTABLE_PATH --generate-completion-script fish > build-artifacts/completions/gitty.fish
-          
-          ls -R build-artifacts/completions/
-
-      - name: Generate Man Page
-        run: |
-          swift package generate-manual
-          MAN_PAGE_PATH=$(find .build/plugins/GenerateManual/outputs/ -name "*.1" -print -quit)
-          if [ -z "$MAN_PAGE_PATH" ]; then
-              echo "Error: Could not find any .1 man page file in the plugin output directory."
-              exit 1
-          fi
-          cp "$MAN_PAGE_PATH" build-artifacts/man/${{ env.APP_NAME }}.1
-          ls -R build-artifacts/man/
-
-      - name: Prepare Artifact Archive
-        run: |
-          ARCHIVE_NAME="${{ env.APP_NAME }}-auxiliary-files-${{ env.TAG_VERSION || github.sha }}.tar.gz"
-          # Compress the build-artifacts directory content
-          tar -C build-artifacts -czf $ARCHIVE_NAME .
-          echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: auxiliary-files-${{ env.TAG_VERSION || github.sha }}
-          path: ${{ env.APP_NAME }}-auxiliary-files-${{ env.TAG_VERSION || github.sha }}.tar.gz
-
-
   publish-release:
     name: Publish Release
-    needs: [macos-arm64-build, linux-build, linux-static-sdk-build, linux-arm64-build, linux-arm64-static-build, generate_build_artifacts]
+    needs: [macos-arm64-build, linux-build, linux-static-sdk-build, linux-arm64-build, linux-arm64-static-build]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:

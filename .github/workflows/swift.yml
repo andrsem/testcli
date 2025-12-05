@@ -11,8 +11,52 @@ on:
     branches: [ "main" ]
 
 jobs:
+  linux-build:
+    name: Linux x86_64 Build
+    strategy:
+      fail-fast: false
+      matrix:
+        swift: ["nightly-main", "6.2.1"]
+        include:
+          - swift: "nightly-main"
+            container: "swiftlang/swift:nightly-main"
+            continueOnError: true
+          - swift: "6.2.1"
+            container: "swift:6.2.1"
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    continue-on-error: ${{ matrix.continueOnError == true }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set Tag Version Environment Variable
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/} 
+          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
+      - name: Swift version
+        run: swift --version
+      - name: Build / Test
+        run: swift test && swift test -c release
+        timeout-minutes: 60
+      - name: Build Release Binary
+        if: matrix.swift == '6.2.1'
+        run: swift build -c release
+      - name: Prepare Linux Artifact
+        if: matrix.swift == '6.2.1'
+        run: |
+          ARCHIVE_NAME="${{ env.APP_NAME }}-linux-x86_64-${{ env.TAG_VERSION || github.sha }}.tar.gz"
+          mkdir -p artifacts
+          tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
+      - name: Upload Linux Artifact
+        if: matrix.swift == '6.2.1'
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x86_64-${{ env.TAG_VERSION || github.sha }}
+          path: artifacts/${{ env.APP_NAME }}-linux-x86_64-${{ env.TAG_VERSION || github.sha }}.tar.gz
+
   linux-static-sdk-build:
-    name: Static Linux x86_64 Swift SDK Build
+    name: Static Linux x86_64 Build
     runs-on: ubuntu-latest
     container: "swift:6.2.1"
     steps:
@@ -178,38 +222,3 @@ jobs:
           name: macos-arm64-${{ env.TAG_VERSION || github.sha }}
           path: artifacts/${{ env.APP_NAME }}-macos-arm64-${{ env.TAG_VERSION || github.sha }}.tar.gz
 
-  macos-universal-build:
-    name: macOS Universal Binary Build (Optional)
-    runs-on: macos-14
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set Tag Version Environment Variable
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          TAG_VERSION=${GITHUB_REF#refs/tags/}
-          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
-      - name: Swift version
-        run: swift --version
-      - name: Build Universal Binary
-        run: |
-          # Build for both architectures
-          swift build -c release --arch arm64
-          swift build -c release --arch x86_64
-          # Create universal binary
-          mkdir -p .build/universal
-          lipo -create \
-            .build/arm64-apple-macosx/release/${{ env.APP_NAME }} \
-            .build/x86_64-apple-macosx/release/${{ env.APP_NAME }} \
-            -output .build/universal/${{ env.APP_NAME }}
-        timeout-minutes: 60
-      - name: Prepare macOS Universal Artifact
-        run: |
-          ARCHIVE_NAME="${{ env.APP_NAME }}-macos-universal-${{ env.TAG_VERSION || github.sha }}.tar.gz"
-          mkdir -p artifacts
-          tar -C .build/universal -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
-      - name: Upload macOS Universal Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-universal-${{ env.TAG_VERSION || github.sha }}
-          path: artifacts/${{ env.APP_NAME }}-macos-universal-${{ env.TAG_VERSION || github.sha }}.tar.gz

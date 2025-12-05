@@ -192,7 +192,7 @@ jobs:
 
 
   generate_build_artifacts:
-    name: Linux ARM64 Build
+    name: Generate Build Artifacts
     runs-on: ubuntu-latest
     container: "swift:6.2.1"
     steps:

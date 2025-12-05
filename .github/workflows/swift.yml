@@ -234,7 +234,12 @@ jobs:
       - name: Generate Man Page
         run: |
           swift package generate-manual
-          cp .build/plugins/GenerateManual/outputs/${{ env.APP_NAME }}.1 build-artifacts/man/${{ env.APP_NAME }}.1
+          MAN_PAGE_PATH=$(find .build/plugins/GenerateManual/outputs/ -name "*.1" -print -quit)
+          if [ -z "$MAN_PAGE_PATH" ]; then
+              echo "Error: Could not find any .1 man page file in the plugin output directory."
+              exit 1
+          fi
+          cp "$MAN_PAGE_PATH" build-artifacts/man/${{ env.APP_NAME }}.1
           ls -R build-artifacts/man/
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4

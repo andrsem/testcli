@@ -205,22 +205,14 @@ jobs:
       - name: Swift version
         run: swift --version
       - name: Build Executable
-        run: swift build --configuration release
-      - name: Verify Executable Path
-        run: |
-          echo "Checking for executable in .build/release/ (expected path):"
-          ls -lha .build/release/ || { echo "ERROR: .build/release/ directory not found or empty." ; exit 1; }
+        run: swift build -c release
       - name: Create Output Directories
         run: |
           mkdir -p build-artifacts/completions
           mkdir -p build-artifacts/man
       - name: Generate Shell Completion Scripts
         run: |
-          EXECUTABLE_PATH=$(find .build/release/ -name gitty -type f -perm +111 -print -quit)
-          if [ -z "$EXECUTABLE_PATH" ]; then
-              echo "Error: Could not find the 'gitty' executable after searching in .build/release/ subdirectories."
-              exit 1
-          fi          
+          EXECUTABLE_PATH=".build/release/{{ env.APP_NAME }}"
 
           echo "Generating Zsh completion..."
           $EXECUTABLE_PATH --generate-completion-script zsh > build-artifacts/completions/gitty.zsh

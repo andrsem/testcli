@@ -197,20 +197,21 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Setup Swift
-        # Ensures the correct Swift toolchain is available for building
-        uses: swift-actions/setup-swift@v1
-
+      - name: Install Swift 6.2.1
+        run: |
+          curl -L https://download.swift.org/swift-6.2.1-release/xcode/swift-6.2.1-RELEASE/swift-6.2.1-RELEASE-osx.pkg -o swift.pkg
+          sudo installer -pkg swift.pkg -target /
+          export PATH="/Library/Developer/Toolchains/swift-6.2.1-RELEASE.xctoolchain/usr/bin:$PATH"
+          echo "/Library/Developer/Toolchains/swift-6.2.1-RELEASE.xctoolchain/usr/bin" >> $GITHUB_PATH
+      - name: Swift version
+        run: swift --version
       - name: Build Executable
         # This compiles your 'gitty' tool so it can be run later
         run: swift build --configuration release
-
       - name: Create Output Directories
         run: |
           mkdir -p build-artifacts/completions
           mkdir -p build-artifacts/man
-
       - name: Generate Shell Completion Scripts
         # The executable is located in .build/release/gitty after the build step.
         # We pipe the output directly to the desired file paths.

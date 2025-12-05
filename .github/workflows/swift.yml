@@ -205,11 +205,7 @@ jobs:
           echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
       - name: Swift version
         run: swift --version
-      - name: Install QEMU for ARM64 emulation
-        run: |
-          apt-get update
-          apt-get install -y qemu-user-static
-      - name: Build for Linux ARM64
+      - name: Build for Linux
         run: swift build -c release
         timeout-minutes: 60
       - name: Create Output Directories
@@ -241,11 +237,19 @@ jobs:
           fi
           cp "$MAN_PAGE_PATH" build-artifacts/man/${{ env.APP_NAME }}.1
           ls -R build-artifacts/man/
+
+      - name: Prepare Artifact Archive
+        run: |
+          ARCHIVE_NAME="${{ env.APP_NAME }}-auxiliary-files-${{ env.TAG_VERSION || github.sha }}.tar.gz"
+          # Compress the build-artifacts directory content
+          tar -C build-artifacts -czf $ARCHIVE_NAME .
+          echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: CLI-Artifacts-gitty
-          path: build-artifacts/
+          name: auxiliary-files-${{ env.TAG_VERSION || github.sha }}
+          path: ${{ env.APP_NAME }}-auxiliary-files-${{ env.TAG_VERSION || github.sha }}.tar.gz
 
 
   publish-release:

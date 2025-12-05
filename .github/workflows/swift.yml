@@ -95,12 +95,21 @@ jobs:
           fi
         timeout-minutes: 60
 
+
       - name: Prepare Artifact
         if: matrix.skip_release != true
         run: |
+          # Determine the correct binary path using --show-bin-path
+          if [ "${{ matrix.sdk_type }}" == "static" ]; then
+            BIN_PATH=$(swift build -c release --swift-sdk ${{ matrix.sdk_target }} --show-bin-path)
+          else
+            BIN_PATH=$(swift build -c release --show-bin-path)
+          fi
+
+          echo "Packaging artifact from: $BIN_PATH"
           ARCHIVE_NAME="${{ env.APP_NAME }}-${{ matrix.artifact_suffix }}-${{ env.TAG_VERSION || github.sha }}.tar.gz"
           mkdir -p artifacts
-          tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
+          tar -C "$BIN_PATH" -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
 
       - name: Upload Artifact
         if: matrix.skip_release != true

@@ -192,7 +192,6 @@ jobs:
 
 
   generate_build_artifacts:
-    # Using a fast and common runner
     runs-on: macos-26
     steps:
       - name: Checkout Repository
@@ -206,43 +205,40 @@ jobs:
       - name: Swift version
         run: swift --version
       - name: Build Executable
-        # This compiles your 'gitty' tool so it can be run later
         run: swift build --configuration release
+      - name: Verify Executable Path
+        run: |
+          echo "Checking for executable in .build/release/ (expected path):"
+          ls -lha .build/release/ || { echo "ERROR: .build/release/ directory not found or empty." ; exit 1; }
       - name: Create Output Directories
         run: |
           mkdir -p build-artifacts/completions
           mkdir -p build-artifacts/man
       - name: Generate Shell Completion Scripts
-        # The executable is located in .build/release/gitty after the build step.
-        # We pipe the output directly to the desired file paths.
         run: |
-          EXECUTABLE_PATH=$(pwd)/.build/release/gitty
+          EXECUTABLE_PATH="./.build/release/gitty" 
+          
           echo "Generating Zsh completion..."
           $EXECUTABLE_PATH --generate-completion-script zsh > build-artifacts/completions/gitty.zsh
-
+          
           echo "Generating Bash completion..."
           $EXECUTABLE_PATH --generate-completion-script bash > build-artifacts/completions/gitty.bash
-
+          
           echo "Generating Fish completion..."
           $EXECUTABLE_PATH --generate-completion-script fish > build-artifacts/completions/gitty.fish
-
+          
           ls -R build-artifacts/completions/
 
       - name: Generate Man Page
-        # Uses the Swift Package Manager to generate the man page.
-        # The output is moved from the default location into our man directory.
         run: |
           swift package generate-manual
           cp .build/manual/gitty.1 build-artifacts/man/gitty.1
           ls -R build-artifacts/man/
-
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: CLI-Artifacts-gitty
           path: build-artifacts/
-          # Keep the artifact available for 1 day
-          retention-days: 1
 
 
   publish-release:

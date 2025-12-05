@@ -11,6 +11,41 @@ on:
     branches: [ "main" ]
 
 jobs:
+  macos-arm64-build:
+    name: macOS
+    runs-on: macos-26
+    continue-on-error: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set Tag Version Environment Variable
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/} 
+          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
+      - name: Swift version
+        run: xcrun swift --version
+      - name: Select Xcode
+        run: echo "DEVELOPER_DIR=/Applications/Xcode_26.1.app"
+      - name: Check formatting and lint
+        run: bash scripts/format_lint.sh
+      - name: Build / Test
+        run: xcrun swift test && xcrun swift test -c release
+        timeout-minutes: 60
+      - name: Build Release Binary
+        run: xcrun swift build -c release
+      - name: Prepare macOS Artifact
+        run: |
+          ARCHIVE_NAME="${{ env.APP_NAME }}-macos-${{ env.TAG_VERSION || github.sha }}.tar.gz"
+          mkdir -p artifacts
+          tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ env.TAG_VERSION || github.sha }}
+          path: artifacts/${{ env.APP_NAME }}-macos-${{ env.TAG_VERSION || github.sha }}.tar.gz
+
+
   linux-build:
     name: Linux x86_64 Build
     strategy:
@@ -155,40 +190,6 @@ jobs:
         with:
           name: linux-arm64-static-${{ env.TAG_VERSION || github.sha }}
           path: artifacts/${{ env.APP_NAME }}-linux-arm64-static-${{ env.TAG_VERSION || github.sha }}.tar.gz
-
-
-  macos-arm64-build:
-    name: macOS ARM64 Build
-    runs-on: macos-14  # Apple Silicon Mac
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set Tag Version Environment Variable
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          TAG_VERSION=${GITHUB_REF#refs/tags/}
-          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
-      - name: Install Swift 6.2.1
-        run: |
-          curl -L https://download.swift.org/swift-6.2.1-release/xcode/swift-6.2.1-RELEASE/swift-6.2.1-RELEASE-osx.pkg -o swift.pkg
-          sudo installer -pkg swift.pkg -target /
-          export PATH="/Library/Developer/Toolchains/swift-6.2.1-RELEASE.xctoolchain/usr/bin:$PATH"
-          echo "/Library/Developer/Toolchains/swift-6.2.1-RELEASE.xctoolchain/usr/bin" >> $GITHUB_PATH
-      - name: Swift version
-        run: swift --version
-      - name: Build for macOS ARM64
-        run: swift build -c release --arch arm64
-        timeout-minutes: 60
-      - name: Prepare macOS ARM64 Artifact
-        run: |
-          ARCHIVE_NAME="${{ env.APP_NAME }}-macos-arm64-${{ env.TAG_VERSION || github.sha }}.tar.gz"
-          mkdir -p artifacts
-          tar -C .build/release -czf artifacts/$ARCHIVE_NAME ${{ env.APP_NAME }}
-      - name: Upload macOS ARM64 Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-arm64-${{ env.TAG_VERSION || github.sha }}
-          path: artifacts/${{ env.APP_NAME }}-macos-arm64-${{ env.TAG_VERSION || github.sha }}.tar.gz
 
 
   publish-release:

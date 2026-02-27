@@ -1,5 +1,5 @@
 html:
-	asciidoctor \
+	@asciidoctor \
 		-b html5 \
 		-a stylesheet=git-style.css \
 		-a linkcss \
@@ -7,5 +7,6 @@ html:
 		-a sectids \
 		-a toc=left \
 		-a toclevels=3 \
+		-o docs/index.html \
 		docs/cli.adoc
-	echo "Html man pages generated"
+	@echo "Html man pages generated"

@@ -1,0 +1,17 @@
+= cli(1)
+:doctype: manpage
+:nofooter:
+
+== NAME
+
+cli - cli tool
+
+
+== SYNOPSIS
+[verse]
+*cli* _<argument>_ [*--verbose*]
+
+
+== DESCRIPTION
+
+a cool cli tool

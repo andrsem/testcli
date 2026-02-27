@@ -7,6 +7,5 @@ html:
 		-a sectids \
 		-a toc=left \
 		-a toclevels=3 \
-		-o docs/index.html \
 		docs/cli.adoc
 	@echo "Html man pages generated"
